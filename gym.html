@@ -3525,7 +3525,7 @@ img, video, canvas, svg { max-width: 100%; }
 })();
 </script>
 
-<!-- ===== Nova gym coach (top-right avatar, bring-your-own Anthropic key) ===== -->
+<!-- ===== Nova gym coach (top-right avatar, bring-your-own Groq key) ===== -->
 <style>
   /* Anchor the avatar to the top-right of the page content, not the far corner. */
   .po-shell { position: relative; }
@@ -3604,7 +3604,7 @@ img, video, canvas, svg { max-width: 100%; }
 <script>
 (function () {
   'use strict';
-  const KEY_LS = 'nova_lite_api_key';
+  const KEY_LS = 'nova_groq_key';
   const $ = (id) => document.getElementById(id);
   const fab = $('nvFab'), panel = $('nvPanel'), body = $('nvBody'), input = $('nvInput');
   let busy = false, greeted = false;
@@ -3662,20 +3662,20 @@ img, video, canvas, svg { max-width: 100%; }
     text = (text||'').trim(); if (!text || busy) return;
     const key = savedKey();
     addMsg('user', md(text));
-    if (!key){ addMsg('coach', md("Paste your **Anthropic API key** on the Nova page first (the 🧠 tile on the home screen) — it's saved in this browser and I'll use it here too.")); return; }
+    if (!key){ addMsg('coach', md("Paste your **Groq API key** on the Nova page first (the 🧠 tile on the home screen) — it's saved in this browser and I'll use it here too.")); return; }
     busy = true;
     const loading = addMsg('coach', '<span class="nv-dots"><i></i><i></i><i></i></span>');
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: { 'content-type':'application/json', 'x-api-key':key, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
-        body: JSON.stringify({ model:'claude-opus-4-8', max_tokens:1024, system: SYS + gymContext(), messages:[{role:'user', content:text}] }),
+        headers: { 'content-type':'application/json', 'authorization':'Bearer ' + key },
+        body: JSON.stringify({ model:'llama-3.3-70b-versatile', max_tokens:1024, messages:[{role:'system', content:SYS + gymContext()}, {role:'user', content:text}] }),
       });
       const json = await res.json();
       if (json.error){ loading.innerHTML = md('- ' + (json.error.message || 'Something went wrong — check your API key.')); busy=false; return; }
-      const reply = (json.content && json.content[0] && json.content[0].text) || 'Hmm, no reply.';
+      const reply = (json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content) || 'Hmm, no reply.';
       loading.innerHTML = md(reply);
-    } catch(e){ loading.innerHTML = md('- Could not reach Anthropic — check your connection and key.'); }
+    } catch(e){ loading.innerHTML = md('- Could not reach Groq — check your connection and key.'); }
     body.scrollTop = body.scrollHeight; busy = false;
   }
 

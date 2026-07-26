@@ -100,9 +100,9 @@ Replace the old URL/key in these files:
 
 ## 4. Nova (AI mentor / gym coach) — optional
 
-No setup or key in the repo. Each user **pastes their own Anthropic API key** on the
-**Nova** tile; it's stored only in their browser and sent straight to Anthropic. Get a key at
-console.anthropic.com.
+No setup or key in the repo. Each user **pastes their own Groq API key** on the
+**Nova** tile; it's stored only in their browser and sent straight to Groq. Get a key at
+console.groq.com/keys.
 
 ---
 

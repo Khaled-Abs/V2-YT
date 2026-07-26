@@ -699,8 +699,8 @@ body::after {
 (function () {
   'use strict';
 
-  // Paste your Anthropic key here to enable ✨ Polish. Empty = falls back to plain add.
-  const ANTHROPIC_API_KEY = '';
+  // Reads Groq API key from localStorage (set via Nova Lite). Empty = falls back to plain add.
+  function groqKey() { try { return localStorage.getItem('nova_groq_key') || ''; } catch (e) { return ''; } }
 
   const WAKE_HOUR  = 8;
   const SLEEP_HOUR = 24;
@@ -1215,16 +1215,11 @@ body::after {
   }
 
   async function polishOne(text) {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + groqKey() },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
+        model: 'llama-3.3-70b-versatile',
         max_tokens: 1000,
         messages: [{
           role: 'user',
@@ -1235,7 +1230,7 @@ body::after {
       })
     });
     const data = await res.json();
-    const content = (data && data.content && data.content[0] && data.content[0].text) || '';
+    const content = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
     const arr = JSON.parse(content);
     if (!Array.isArray(arr) || arr.length < 1 || typeof arr[0] !== 'string') throw new Error('bad response');
     return arr[0].trim();
@@ -1260,9 +1255,9 @@ body::after {
     polishBtn.addEventListener('click', async () => {
       const text = input.value.trim();
       if (!text) return;
-      if (!ANTHROPIC_API_KEY) {
+      if (!groqKey()) {
         plainAdd(text);
-        showStatus(statusEl, 'Polish needs an Anthropic API key — added as-typed.', false);
+        showStatus(statusEl, 'Polish needs a Groq API key (set in Nova Lite) — added as-typed.', false);
         return;
       }
       polishBtn.disabled = true;
