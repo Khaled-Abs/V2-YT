@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Nova Lite · AI Mentor</title>
+<script src="topbar.js" defer></script>
 <!-- ============================================================
  * NOVA LITE — a simple, drop-in AI mentor for ANY dashboard.
  * Single self-contained file. No backend, no build step.
@@ -80,10 +81,27 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: 
 .composer input:focus { border-color: var(--accent); }
 .composer button { width: 50px; border: 0; border-radius: 12px; cursor: pointer; color: #04140d; background: var(--accent); font-size: 18px; }
 .composer button:active { transform: scale(.94); }
+
+.nv-back-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px 8px 10px; margin-bottom: 14px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 999px;
+  color: var(--muted); font-size: 12px; font-weight: 600;
+  text-decoration: none;
+  transition: background .15s, color .15s;
+}
+.nv-back-btn:hover { background: rgba(255,255,255,.07); color: var(--fg); }
+.nv-back-btn svg { display: block; }
 </style>
 </head>
 <body>
   <div class="wrap">
+    <a href="index.html" class="nv-back-btn" aria-label="Back to dashboard">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      <span>Back</span>
+    </a>
     <div class="top">
       <div class="orb" id="orb"></div>
       <div class="title"><h1>Nova Lite</h1><div class="role">your mentor</div></div>
