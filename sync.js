@@ -70,6 +70,15 @@
       try { if (!suppressSync && matches(k)) schedulePush(); } catch (e) {}
     };
 
+    function isObj(v) { return v && typeof v === 'object' && !Array.isArray(v); }
+    function deepMerge(a, b) {
+      const out = Object.assign({}, a);
+      for (const k of Object.keys(b)) {
+        if (isObj(out[k]) && isObj(b[k])) { out[k] = deepMerge(out[k], b[k]); }
+        else { out[k] = b[k]; }
+      }
+      return out;
+    }
     function applyRemote(remote) {
       if (!remote || typeof remote !== 'object') return false;
       suppressSync = true;
@@ -77,17 +86,17 @@
       try {
         for (const k of Object.keys(remote)) {
           if (!matches(k)) continue;
-          const incoming = JSON.stringify(remote[k]);
-          const local = localStorage.getItem(k);
-          if (local !== incoming) {
-            try { origSet(k, incoming); changed = true; } catch (e) {}
+          const raw = localStorage.getItem(k);
+          if (raw == null) {
+            try { origSet(k, JSON.stringify(remote[k])); changed = true; } catch (e) {}
+          } else {
+            let local; try { local = JSON.parse(raw); } catch (e) { local = raw; }
+            const merged = isObj(local) && isObj(remote[k]) ? deepMerge(local, remote[k]) : remote[k];
+            const str = JSON.stringify(merged);
+            if (str !== raw) { try { origSet(k, str); changed = true; } catch (e) {} }
           }
         }
-        for (const k of listAllKeys()) {
-          if (!(k in remote)) {
-            try { origRemove(k); changed = true; } catch (e) {}
-          }
-        }
+        // No longer delete local keys absent from remote — preserves local-only data
       } finally { suppressSync = false; }
       if (changed && typeof onApplied === 'function') {
         try { onApplied(); } catch (e) {}
