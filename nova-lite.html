@@ -93,12 +93,12 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: 
 
     <div class="keypanel" id="keypanel">
       <div class="keybar">
-        <input id="keyInput" type="password" placeholder="paste your Anthropic API key (sk-ant-…)" autocomplete="off" />
+        <input id="keyInput" type="password" placeholder="paste your Gemini API key (AIza…)" autocomplete="off" />
         <button id="keySave">Save</button>
       </div>
       <div class="hint" id="hint">
-        Your key is stored only in <b>this browser</b> and sent straight to Anthropic — never to us.
-        Get one at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>.
+        Your key is stored only in <b>this browser</b> and sent straight to Google — never to us.
+        Get one at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com</a>.
       </div>
     </div>
 
@@ -112,7 +112,7 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: 
 
 <script>
 (function(){
-  const KEY_LS = 'nova_lite_api_key';
+  const KEY_LS = 'nova_gemini_key';
   const feed = document.getElementById('feed');
   const input = document.getElementById('chatInput');
   const orb = document.getElementById('orb');
@@ -184,28 +184,21 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: 
     setOrb('think');
     const loading = addCoach('<span class="dots"><i></i><i></i><i></i></span>');
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + key, {
         method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-api-key': key,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
+        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-opus-4-8',
-          max_tokens: 1024,
-          system: SYS + JSON.stringify(dashboardData()),
-          messages: [{ role: 'user', content: text }],
+          contents: [{ role: 'user', parts: [{ text }] }],
+          system_instruction: { parts: [{ text: SYS + JSON.stringify(dashboardData()) }] },
         }),
       });
       const json = await res.json();
       if (json.error){ loading.querySelector('div:last-child').innerHTML = render('- ' + (json.error.message || 'Something went wrong — check your API key.')); setOrb(''); busy = false; return; }
-      const reply = (json.content && json.content[0] && json.content[0].text) || 'Hmm, no reply.';
+      const reply = (json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts && json.candidates[0].content.parts[0].text) || 'Hmm, no reply.';
       loading.querySelector('div:last-child').innerHTML = render(reply);
       setOrb('happy'); setTimeout(() => setOrb(''), 2500);
     } catch(e){
-      loading.querySelector('div:last-child').innerHTML = render('- Could not reach Anthropic — check your connection and key.');
+      loading.querySelector('div:last-child').innerHTML = render('- Could not reach Gemini — check your connection and key.');
       setOrb('');
     }
     busy = false;
