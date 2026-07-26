@@ -9,11 +9,10 @@
  * Single self-contained file. No backend, no build step.
  *
  * HOW IT WORKS (bring-your-own-key):
- *   • The viewer pastes their OWN Anthropic API key (stored only in
- *     their browser's localStorage — never sent anywhere but Anthropic).
+  *   • The viewer pastes their OWN Groq API key (stored only in
+ *     their browser's localStorage — never sent anywhere but Groq).
  *   • Nova reads whatever the dashboard saved in localStorage for context.
- *   • Calls the Claude API directly from the browser using the
- *     `anthropic-dangerous-direct-browser-access` header.
+ *   • Calls the Groq API directly from the browser.
  *
  * This is the lightweight version: a flat CSS orb (no 3D), basic chat.
  * The premium build (3D avatar, Spark voice scheduler, secure server
@@ -93,12 +92,12 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: 
 
     <div class="keypanel" id="keypanel">
       <div class="keybar">
-        <input id="keyInput" type="password" placeholder="paste your Gemini API key (AIza…)" autocomplete="off" />
+        <input id="keyInput" type="password" placeholder="paste your Groq API key (gsk_…)" autocomplete="off" />
         <button id="keySave">Save</button>
       </div>
       <div class="hint" id="hint">
-        Your key is stored only in <b>this browser</b> and sent straight to Google — never to us.
-        Get one at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com</a>.
+        Your key is stored only in <b>this browser</b> and sent straight to Groq — never to us.
+        Get one at <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com</a>.
       </div>
     </div>
 
@@ -112,7 +111,7 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: 
 
 <script>
 (function(){
-  const KEY_LS = 'nova_gemini_key';
+  const KEY_LS = 'nova_groq_key';
   const feed = document.getElementById('feed');
   const input = document.getElementById('chatInput');
   const orb = document.getElementById('orb');
@@ -179,26 +178,30 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: 
   async function ask(text){
     text = (text||'').trim(); if (!text || busy) return;
     const key = savedKey();
-    if (!key){ addCoach('- Paste your **Anthropic API key** above first, then ask me again.'); return; }
+    if (!key){ addCoach('- Paste your **Groq API key** above first, then ask me again.'); return; }
     busy = true; addUser(text); input.value = '';
     setOrb('think');
     const loading = addCoach('<span class="dots"><i></i><i></i><i></i></span>');
     try {
-      const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + key, {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: { 'content-type': 'application/json', 'authorization': 'Bearer ' + key },
         body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text }] }],
-          system_instruction: { parts: [{ text: SYS + JSON.stringify(dashboardData()) }] },
+          model: 'llama-3.3-70b-versatile',
+          max_tokens: 1024,
+          messages: [
+            { role: 'system', content: SYS + JSON.stringify(dashboardData()) },
+            { role: 'user', content: text },
+          ],
         }),
       });
       const json = await res.json();
       if (json.error){ loading.querySelector('div:last-child').innerHTML = render('- ' + (json.error.message || 'Something went wrong — check your API key.')); setOrb(''); busy = false; return; }
-      const reply = (json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts && json.candidates[0].content.parts[0].text) || 'Hmm, no reply.';
+      const reply = (json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content) || 'Hmm, no reply.';
       loading.querySelector('div:last-child').innerHTML = render(reply);
       setOrb('happy'); setTimeout(() => setOrb(''), 2500);
     } catch(e){
-      loading.querySelector('div:last-child').innerHTML = render('- Could not reach Gemini — check your connection and key.');
+      loading.querySelector('div:last-child').innerHTML = render('- Could not reach Groq — check your connection and key.');
       setOrb('');
     }
     busy = false;
