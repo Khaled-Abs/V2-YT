@@ -106,15 +106,22 @@
 
     async function pushNow() {
       if (!supa) return;
-      const state = collect();
-      const json = JSON.stringify(state);
-      if (json === lastSyncedJson) return;
+      const localState = collect();
+      const localJson = JSON.stringify(localState);
+      if (localJson === lastSyncedJson) return;
       try {
+        let merged = localState;
+        try {
+          const { data } = await supa.from('app_state').select('data').eq('key', appKey).maybeSingle();
+          if (data && data.data && isObj(data.data) && isObj(localState)) {
+            merged = deepMerge(data.data, localState);
+          }
+        } catch (e) {}
         const { error } = await supa.from('app_state').upsert(
-          { key: appKey, data: state, updated_at: new Date().toISOString() },
+          { key: appKey, data: merged, updated_at: new Date().toISOString() },
           { onConflict: 'key' }
         );
-        if (!error) lastSyncedJson = json;
+        if (!error) lastSyncedJson = localJson;
       } catch (e) {}
     }
     function schedulePush() {
@@ -122,10 +129,24 @@
       pushTimer = setTimeout(pushNow, 250);
     }
     function flushOnUnload() {
-      const state = collect();
-      const json = JSON.stringify(state);
-      if (json === lastSyncedJson) return;
+      const localState = collect();
+      const localJson = JSON.stringify(localState);
+      if (localJson === lastSyncedJson) return;
       try {
+        let merged = localState;
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', SUPABASE_URL + '/rest/v1/app_state?key=eq.' + encodeURIComponent(appKey) + '&select=data', false);
+          xhr.setRequestHeader('apikey', SUPABASE_KEY);
+          xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_KEY);
+          xhr.send();
+          if (xhr.status === 200) {
+            const rows = JSON.parse(xhr.responseText);
+            if (rows && rows[0] && rows[0].data && isObj(rows[0].data) && isObj(localState)) {
+              merged = deepMerge(rows[0].data, localState);
+            }
+          }
+        } catch (e) {}
         fetch(SUPABASE_URL + '/rest/v1/app_state?on_conflict=key', {
           method: 'POST',
           headers: {
@@ -134,10 +155,10 @@
             'Content-Type': 'application/json',
             'Prefer': 'resolution=merge-duplicates',
           },
-          body: JSON.stringify({ key: appKey, data: state, updated_at: new Date().toISOString() }),
+          body: JSON.stringify({ key: appKey, data: merged, updated_at: new Date().toISOString() }),
           keepalive: true,
         }).catch(() => {});
-        lastSyncedJson = json;
+        lastSyncedJson = localJson;
       } catch (e) {}
     }
 
