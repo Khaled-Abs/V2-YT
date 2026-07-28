@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generate Icons</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #050506; color: #e9ecf5; font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 24px; padding: 20px; }
+h1 { font-size: 20px; font-weight: 600; }
+canvas { border-radius: 24px; box-shadow: 0 0 40px rgba(110,231,183,0.3); }
+.btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.btn { padding: 12px 24px; border: 0; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; background: linear-gradient(180deg,#6EE7B7,#3BA878); color: #04140d; text-decoration: none; }
+.btn:hover { filter: brightness(1.1); }
+.btn:active { transform: scale(0.96); }
+p { font-size: 13px; color: rgba(233,236,245,0.55); text-align: center; max-width: 400px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<h1>Khaled Dashboard Icon</h1>
+<canvas id="c" width="512" height="512"></canvas>
+<div class="btns">
+  <button class="btn" onclick="save(192)">Save 192×192</button>
+  <button class="btn" onclick="save(512)">Save 512×512</button>
+</div>
+<p>Right-click the downloaded image → save as <b>icon-192.png</b> or <b>icon-512.png</b> in your project root folder, then refresh your dashboard.</p>
+<script>
+const c = document.getElementById('c'), ctx = c.getContext('2d');
+function draw(size) {
+  c.width = size; c.height = size;
+  const g = ctx.createRadialGradient(size*0.65, size*0.3, size*0.05, size*0.5, size*0.5, size*0.7);
+  g.addColorStop(0,'#6EE7B7'); g.addColorStop(0.6,'#3BA878'); g.addColorStop(1,'#1F5E42');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.roundRect(0,0,size,size,size*0.18); ctx.fill();
+  ctx.shadowColor = 'rgba(110,231,183,0.5)'; ctx.shadowBlur = size*0.06;
+  ctx.fillStyle = '#fff'; ctx.font = `600 ${size*0.52}px system-ui, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('K', size*0.5, size*0.5);
+}
+draw(512);
+function save(size) {
+  draw(size);
+  const a = document.createElement('a');
+  a.download = 'icon-'+size+'.png'; a.href = c.toDataURL(); a.click();
+  setTimeout(() => draw(512), 100);
+}
+</script>
+</body>
+</html>

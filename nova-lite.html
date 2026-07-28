@@ -95,6 +95,9 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: 
 .nv-back-btn:hover { background: rgba(255,255,255,.07); color: var(--fg); }
 .nv-back-btn svg { display: block; }
 </style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <script>if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js')</script>
 </head>
 <body>
   <div class="wrap">

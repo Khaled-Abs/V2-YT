@@ -204,6 +204,9 @@ body::after {
 .whoop-btn { width: 100%; margin-top: 14px; padding: 11px; border: 1px solid rgba(255,255,255,0.12); border-radius: 11px; background: transparent; color: var(--text-secondary); font-family: inherit; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: background 0.15s, color 0.15s; }
 .whoop-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
 </style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <script>if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js')</script>
 </head>
 <body>
 <div class="page">
